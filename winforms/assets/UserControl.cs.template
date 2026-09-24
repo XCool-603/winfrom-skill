@@ -1,0 +1,99 @@
+// ============================================================================
+// UserControl 逻辑骨架模板 —— 改名为 {{ClassName}}.cs
+// 对外只暴露「语义」（属性 + 事件），绝不暴露内部控件字段。
+// ============================================================================
+
+using System;
+using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace {{Namespace}};
+
+public partial class {{ClassName}} : UserControl
+{
+    // ① public 无参构造函数 —— 必须。VS 设计器要靠它实例化本控件。
+    //    需要依赖注入时用属性注入，不要改成带参构造（会让设计器报"基类无法实例化"）。
+    public {{ClassName}}()
+    {
+        InitializeComponent();
+
+        // 清理钩子：Designer.cs 里已经重写了 Dispose(bool)，同一个 partial 类不能再重写一次，
+        // 所以逻辑文件的清理挂在 Disposed 事件上。
+        Disposed += OnDisposed;
+
+        if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+        {
+            return;
+        }
+
+        InitializeRuntime();
+    }
+
+    // ② 对外事件：把"用户想做什么"抛给宿主，而不是自己弹窗 / 开窗体
+    //    本模板按「未开启 Nullable」编写（与 samples/WinFormsSkillDemo 一致）。
+    //    若项目开启 <Nullable>enable</Nullable>，见文件末尾的 Nullable 说明。
+    public event EventHandler PrimaryActionRequested;
+
+    public event EventHandler SecondaryActionRequested;
+
+    // ③ 对外属性：暴露语义，不暴露零件。
+    //    父窗体应该写 view.SomeValue = x，而不是 view.txtSome.Text = x。
+    public string PlaceholderText
+    {
+        get => lblPlaceholder.Text;
+        set => lblPlaceholder.Text = value ?? string.Empty;
+    }
+
+    private void InitializeRuntime()
+    {
+        // TODO: 绑定、初始状态
+    }
+
+    // ④ 内部事件处理器：名字与 Designer.cs 里订阅的一致
+    private void btnPrimary_Click(object sender, EventArgs e)
+    {
+        PrimaryActionRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void btnSecondary_Click(object sender, EventArgs e)
+    {
+        SecondaryActionRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    // ⑤ 需要重活时用 Load 事件（UserControl 没有 OnLoad 重写）
+    protected override void OnLoad(EventArgs e)
+    {
+        base.OnLoad(e);
+
+        if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+        {
+            return;
+        }
+
+        // TODO: 异步加载
+    }
+
+    // ⑥ 清理：Designer.cs 已重写 Dispose(bool)，这里用 Disposed 事件做逻辑侧清理
+    private void OnDisposed(object sender, EventArgs e)
+    {
+        // TODO: 释放自建资源、退订外部事件
+    }
+}
+
+// ============================================================================
+// Nullable 说明（以下为实测结论，net8.0-windows + <Nullable>enable</Nullable>）
+//
+// 本模板按「未开启 Nullable」编写。若项目开启 <Nullable>enable</Nullable>，需要：
+//   1. 事件声明加 ?            ： public event EventHandler? PrimaryActionRequested;
+//      —— 否则 CS8618「不可为 null 的事件必须包含非 null 值」
+//   2. 事件处理器参数改成 object? ： private void Btn_Click(object? sender, EventArgs e)
+//      —— 否则 CS8622「参数 sender 的为 Null 性与目标委托 EventHandler 不匹配」
+//   3. Designer.cs 里的控件字段   ： private System.Windows.Forms.Button btnOk;
+//      在 Nullable 项目下会报 CS8618，而这是设计器自己生成的写法，躲不掉。
+//      惯常做法（二选一）：
+//        a) 在 *.Designer.cs 文件头加一行   #nullable disable
+//        b) 在 csproj 里  <NoWarn>$(NoWarn);CS8618</NoWarn>
+//      —— 不要为了消警告把控件字段改成 Button?，那会让设计器序列化出问题。
+//
+// 反过来，未开启 Nullable 的项目里写 EventHandler? / object? 会报 CS8632。
+// ============================================================================

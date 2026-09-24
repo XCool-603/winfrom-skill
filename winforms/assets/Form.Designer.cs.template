@@ -1,0 +1,148 @@
+// ============================================================================
+// Form 骨架模板 —— 改名为 {{ClassName}}.Designer.cs
+// 契约见 references/designer-cs-contract.md。改动本文件前请先读 §4 禁止清单。
+// 本文件只放界面，任何逻辑写到 {{ClassName}}.cs。
+// ============================================================================
+
+namespace {{Namespace}};
+
+partial class {{ClassName}}
+{
+    /// <summary>
+    ///  Required designer variable.
+    /// </summary>
+    private System.ComponentModel.IContainer components = null;
+
+    /// <summary>
+    ///  Clean up any resources being used.
+    /// </summary>
+    /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && (components != null))
+        {
+            components.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+
+    #region Windows Form Designer generated code
+
+    /// <summary>
+    ///  Required method for Designer support - do not modify
+    ///  the contents of this method with the code editor.
+    /// </summary>
+    private void InitializeComponent()
+    {
+        // 只有用到非可视组件（ToolTip / ErrorProvider / Timer / ImageList / BindingSource ...）时
+        // 才需要 new Container()，并把它们构造为 new Xxx(this.components) 以便自动释放。
+        // 本骨架没有非可视组件，所以这行省略；需要时取消注释即可。
+        // this.components = new System.ComponentModel.Container();
+        this.rootLayout = new System.Windows.Forms.TableLayoutPanel();
+        this.flowToolbar = new System.Windows.Forms.FlowLayoutPanel();
+        this.btnPrimary = new System.Windows.Forms.Button();
+        this.btnSecondary = new System.Windows.Forms.Button();
+        this.pnlContent = new System.Windows.Forms.Panel();
+        this.rootLayout.SuspendLayout();
+        this.flowToolbar.SuspendLayout();
+        this.SuspendLayout();
+        //
+        // rootLayout
+        //
+        this.rootLayout.ColumnCount = 1;
+        this.rootLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+        this.rootLayout.Dock = System.Windows.Forms.DockStyle.Fill;
+        this.rootLayout.Location = new System.Drawing.Point(0, 0);
+        this.rootLayout.Name = "rootLayout";
+        this.rootLayout.RowCount = 3;
+        this.rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+        this.rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+        this.rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+        this.rootLayout.Size = new System.Drawing.Size({{ClientWidth}}, {{ClientHeight}});
+        this.rootLayout.TabIndex = 0;
+        //
+        // flowToolbar  —— 第 0 行：工具栏。按钮都加到这里
+        //
+        this.flowToolbar.AutoSize = true;
+        this.flowToolbar.Controls.Add(this.btnPrimary);
+        this.flowToolbar.Controls.Add(this.btnSecondary);
+        this.flowToolbar.Dock = System.Windows.Forms.DockStyle.Fill;
+        this.flowToolbar.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
+        this.flowToolbar.Location = new System.Drawing.Point(3, 3);
+        this.flowToolbar.Name = "flowToolbar";
+        this.flowToolbar.Padding = new System.Windows.Forms.Padding(6, 6, 6, 0);
+        this.flowToolbar.Size = new System.Drawing.Size(778, 37);
+        this.flowToolbar.TabIndex = 0;
+        this.flowToolbar.WrapContents = false;
+        //
+        // btnPrimary
+        //
+        this.btnPrimary.AutoSize = true;
+        this.btnPrimary.Location = new System.Drawing.Point(9, 9);
+        this.btnPrimary.Name = "btnPrimary";
+        this.btnPrimary.Size = new System.Drawing.Size(75, 25);
+        this.btnPrimary.TabIndex = 0;
+        this.btnPrimary.Text = "主操作";
+        this.btnPrimary.UseVisualStyleBackColor = true;
+        this.btnPrimary.Click += new System.EventHandler(this.btnPrimary_Click);
+        //
+        // btnSecondary
+        //
+        this.btnSecondary.AutoSize = true;
+        this.btnSecondary.Location = new System.Drawing.Point(90, 9);
+        this.btnSecondary.Name = "btnSecondary";
+        this.btnSecondary.Size = new System.Drawing.Size(75, 25);
+        this.btnSecondary.TabIndex = 1;
+        this.btnSecondary.Text = "次操作";
+        this.btnSecondary.UseVisualStyleBackColor = true;
+        this.btnSecondary.Click += new System.EventHandler(this.btnSecondary_Click);
+        //
+        // pnlContent  —— 第 1 行：内容宿主。
+        // 优先在这里 Dock=Fill 放一个 UserControl，而不是继续往窗体堆控件（R5）。
+        //
+        this.pnlContent.Dock = System.Windows.Forms.DockStyle.Fill;
+        this.pnlContent.Location = new System.Drawing.Point(3, 46);
+        this.pnlContent.Name = "pnlContent";
+        this.pnlContent.Size = new System.Drawing.Size(778, 378);
+        this.pnlContent.TabIndex = 1;
+        // TODO(人/AI): 内容区块建议拆成 UserControl，例如：
+        //   this.xxxView = new {{Namespace}}.Views.XxxView();
+        //   this.xxxView.Dock = System.Windows.Forms.DockStyle.Fill;
+        //   this.xxxView.Name = "xxxView";
+        //   this.pnlContent.Controls.Add(this.xxxView);
+        //
+        // rootLayout 收子控件（注意：Controls.Add 必须在属性赋值之后、ResumeLayout 之前）
+        //
+        this.rootLayout.Controls.Add(this.flowToolbar, 0, 0);
+        this.rootLayout.Controls.Add(this.pnlContent, 0, 1);
+        // TODO(人/AI): 第 2 行（底部按钮条）需要时再放，例如一个右对齐的 FlowLayoutPanel：
+        //   this.rootLayout.Controls.Add(this.flowBottom, 0, 2);
+        //   this.rootLayout.SetColumnSpan(this.flowBottom, 1);   // SetColumnSpan 必须在 Add 之后
+        //
+        // {{ClassName}}
+        //
+        this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+        this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+        this.ClientSize = new System.Drawing.Size({{ClientWidth}}, {{ClientHeight}});
+        this.Controls.Add(this.rootLayout);
+        this.MinimumSize = new System.Drawing.Size(480, 320);
+        this.Name = "{{ClassName}}";
+        this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+        this.Text = "{{Title}}";
+        this.rootLayout.ResumeLayout(false);
+        this.rootLayout.PerformLayout();
+        this.flowToolbar.ResumeLayout(false);
+        this.flowToolbar.PerformLayout();
+        this.ResumeLayout(false);
+        this.PerformLayout();
+    }
+
+    #endregion
+
+    // 控件字段声明放在 #endregion 之后（设计器就是这个位置），全部 private，类型全限定
+    private System.Windows.Forms.TableLayoutPanel rootLayout;
+    private System.Windows.Forms.FlowLayoutPanel flowToolbar;
+    private System.Windows.Forms.Button btnPrimary;
+    private System.Windows.Forms.Button btnSecondary;
+    private System.Windows.Forms.Panel pnlContent;
+}

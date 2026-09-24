@@ -1,0 +1,88 @@
+// ============================================================================
+// Form 逻辑骨架模板 —— 改名为 {{ClassName}}.cs
+// 本文件放逻辑。界面在 {{ClassName}}.Designer.cs，不要改那个文件里的布局。
+// ============================================================================
+
+using System;
+using System.ComponentModel;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace {{Namespace}};
+
+public partial class {{ClassName}} : Form
+{
+    // ① 依赖与状态字段（按需添加，例如：
+    //    private readonly ICustomerService _service;
+    //    private CancellationTokenSource? _cts; ）
+
+    // ② 构造函数：InitializeComponent() 必须在任何触碰控件的代码之前
+    public {{ClassName}}()
+    {
+        InitializeComponent();
+
+        // 设计期守卫：构造函数会在 VS 设计器里也执行一遍，重活必须挡住
+        if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+        {
+            return;
+        }
+
+        InitializeRuntime();
+    }
+
+    // ③ 运行时初始化（只在真正运行时执行）
+    private void InitializeRuntime()
+    {
+        // TODO: 数据绑定、状态初始化
+        // 注意：耗时的 IO / 网络 / 数据库调用不要放这里（会白屏），放 OnLoad。
+    }
+
+    // ④ 加载：设计器不执行 OnLoad，重活放这里
+    protected override async void OnLoad(EventArgs e)
+    {
+        base.OnLoad(e);
+
+        try
+        {
+            await LoadDataAsync();
+        }
+        catch (Exception ex)
+        {
+            // async void 的异常无法被调用方捕获，必须自己处理
+            MessageBox.Show(this, $"加载失败：{ex.Message}", "错误",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        // TODO: 异步加载数据，然后更新界面
+        // await 之后已回到 UI 线程，可以直接操作控件
+        await Task.CompletedTask;
+    }
+
+    // ⑤ 事件处理器：名字与 Designer.cs 里订阅的完全一致，签名必须匹配委托
+    private void btnPrimary_Click(object sender, EventArgs e)
+    {
+        // TODO: 主操作
+    }
+
+    private void btnSecondary_Click(object sender, EventArgs e)
+    {
+        // TODO: 次操作
+    }
+
+    // ⑥ 关闭前确认（可选）
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        // TODO: 有未保存修改时在这里 e.Cancel = true 并询问用户
+        base.OnFormClosing(e);
+    }
+
+    // ⑦ 清理：取消未完成的异步、释放自建定时器、退订外部事件
+    protected override void OnFormClosed(FormClosedEventArgs e)
+    {
+        // TODO: _cts?.Cancel(); _cts?.Dispose(); _timer?.Dispose(); _service.SomeEvent -= OnSomeEvent;
+        base.OnFormClosed(e);
+    }
+}

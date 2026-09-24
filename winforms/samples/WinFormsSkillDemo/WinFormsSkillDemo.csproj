@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>WinFormsSkillDemo</RootNamespace>
+    <AssemblyName>WinFormsSkillDemo</AssemblyName>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- DPI：PerMonitorV2。这两条属性会生成 ApplicationConfiguration.Initialize() -->
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationVisualStyles>true</ApplicationVisualStyles>
+    <ApplicationUseCompatibleTextRendering>false</ApplicationUseCompatibleTextRendering>
+
+    <!-- 默认字体：不设置时用系统默认（Segoe UI 9pt），此时各 Designer.cs 里的
+         AutoScaleDimensions = (7F, 15F) 是正确的。
+         若改成中文字体（如 Microsoft YaHei UI, 9pt），务必同步核对所有 Designer.cs
+         的 AutoScaleDimensions —— 不匹配会导致设计器与运行时缩放不一致。
+         <ApplicationDefaultFont>Microsoft YaHei UI, 9pt</ApplicationDefaultFont>
+    -->
+
+    <!-- 本示例按「未开启 Nullable」编写（事件处理器用 object sender，与 VS 设计器生成一致）。
+         若改为 <Nullable>enable</Nullable>，见 references/logic-and-events.md 的 Nullable 说明。 -->
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+</Project>

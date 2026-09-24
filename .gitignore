@@ -1,0 +1,25 @@
+# .NET 构建产物
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+*.userprefs
+.vs/
+
+# NuGet
+*.nupkg
+packages/
+
+# 自检脚本/示例可能产生的临时目录
+_tpltest/
+_nulltest*/
+.dotnet-home/
+.nuget-packages/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

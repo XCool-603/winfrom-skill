@@ -1,0 +1,141 @@
+// ============================================================================
+// UserControl 骨架模板 —— 改名为 {{ClassName}}.Designer.cs
+// 契约见 references/designer-cs-contract.md。
+// 与 Form 模板的三处差异（别抄错）：
+//   ① region 名是 "Component Designer generated code"，不是 "Windows Form Designer"
+//   ② 用 this.Size，没有 ClientSize / StartPosition / FormBorderStyle
+//   ③ 必须有 public 无参构造函数（在 .cs 里），否则 VS 设计器无法实例化它
+// ============================================================================
+
+namespace {{Namespace}};
+
+partial class {{ClassName}}
+{
+    /// <summary>
+    ///  Required designer variable.
+    /// </summary>
+    private System.ComponentModel.IContainer components = null;
+
+    /// <summary>
+    ///  Clean up any resources being used.
+    /// </summary>
+    /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && (components != null))
+        {
+            components.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+
+    #region Component Designer generated code
+
+    /// <summary>
+    ///  Required method for Designer support - do not modify
+    ///  the contents of this method with the code editor.
+    /// </summary>
+    private void InitializeComponent()
+    {
+        // 只有用到非可视组件时才需要 new Container()，见 Form 模板里的说明。
+        // this.components = new System.ComponentModel.Container();
+        this.rootLayout = new System.Windows.Forms.TableLayoutPanel();
+        this.flowToolbar = new System.Windows.Forms.FlowLayoutPanel();
+        this.btnPrimary = new System.Windows.Forms.Button();
+        this.btnSecondary = new System.Windows.Forms.Button();
+        this.lblPlaceholder = new System.Windows.Forms.Label();
+        this.rootLayout.SuspendLayout();
+        this.flowToolbar.SuspendLayout();
+        this.SuspendLayout();
+        //
+        // rootLayout —— 两行：工具栏 / 内容
+        //
+        this.rootLayout.ColumnCount = 1;
+        this.rootLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+        this.rootLayout.Dock = System.Windows.Forms.DockStyle.Fill;
+        this.rootLayout.Location = new System.Drawing.Point(0, 0);
+        this.rootLayout.Name = "rootLayout";
+        this.rootLayout.Padding = new System.Windows.Forms.Padding(8);
+        this.rootLayout.RowCount = 2;
+        this.rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+        this.rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+        this.rootLayout.Size = new System.Drawing.Size({{ClientWidth}}, {{ClientHeight}});
+        this.rootLayout.TabIndex = 0;
+        //
+        // flowToolbar
+        //
+        this.flowToolbar.AutoSize = true;
+        this.flowToolbar.Controls.Add(this.btnPrimary);
+        this.flowToolbar.Controls.Add(this.btnSecondary);
+        this.flowToolbar.Dock = System.Windows.Forms.DockStyle.Fill;
+        this.flowToolbar.Location = new System.Drawing.Point(8, 8);
+        this.flowToolbar.Margin = new System.Windows.Forms.Padding(0);
+        this.flowToolbar.Name = "flowToolbar";
+        this.flowToolbar.Padding = new System.Windows.Forms.Padding(6, 6, 6, 0);
+        this.flowToolbar.Size = new System.Drawing.Size(404, 37);
+        this.flowToolbar.TabIndex = 0;
+        this.flowToolbar.WrapContents = false;
+        //
+        // btnPrimary
+        //
+        this.btnPrimary.AutoSize = true;
+        this.btnPrimary.Location = new System.Drawing.Point(9, 9);
+        this.btnPrimary.Name = "btnPrimary";
+        this.btnPrimary.Size = new System.Drawing.Size(75, 25);
+        this.btnPrimary.TabIndex = 0;
+        this.btnPrimary.Text = "主操作";
+        this.btnPrimary.UseVisualStyleBackColor = true;
+        this.btnPrimary.Click += new System.EventHandler(this.btnPrimary_Click);
+        //
+        // btnSecondary
+        //
+        this.btnSecondary.AutoSize = true;
+        this.btnSecondary.Location = new System.Drawing.Point(90, 9);
+        this.btnSecondary.Name = "btnSecondary";
+        this.btnSecondary.Size = new System.Drawing.Size(75, 25);
+        this.btnSecondary.TabIndex = 1;
+        this.btnSecondary.Text = "次操作";
+        this.btnSecondary.UseVisualStyleBackColor = true;
+        this.btnSecondary.Click += new System.EventHandler(this.btnSecondary_Click);
+        //
+        // lblPlaceholder —— 骨架占位，加真实控件后删掉它
+        //
+        this.lblPlaceholder.AutoSize = false;
+        this.lblPlaceholder.Dock = System.Windows.Forms.DockStyle.Fill;
+        this.lblPlaceholder.Location = new System.Drawing.Point(11, 48);
+        this.lblPlaceholder.Name = "lblPlaceholder";
+        this.lblPlaceholder.Size = new System.Drawing.Size(398, 181);
+        this.lblPlaceholder.TabIndex = 1;
+        this.lblPlaceholder.Text = "{{ClassName}}";
+        this.lblPlaceholder.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+        //
+        // rootLayout 收子控件
+        //
+        this.rootLayout.Controls.Add(this.flowToolbar, 0, 0);
+        this.rootLayout.Controls.Add(this.lblPlaceholder, 0, 1);
+        //
+        // {{ClassName}}
+        //
+        this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+        this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+        this.Controls.Add(this.rootLayout);
+        this.Name = "{{ClassName}}";
+        this.Size = new System.Drawing.Size({{ClientWidth}}, {{ClientHeight}});
+        this.flowToolbar.ResumeLayout(false);
+        this.flowToolbar.PerformLayout();
+        this.rootLayout.ResumeLayout(false);
+        this.rootLayout.PerformLayout();
+        this.ResumeLayout(false);
+        this.PerformLayout();
+    }
+
+    #endregion
+
+    // 控件字段声明放在 #endregion 之后，全部 private，类型全限定。
+    // 注意：不要把这些字段改成 public —— 对外暴露属性/事件，不暴露零件。
+    private System.Windows.Forms.TableLayoutPanel rootLayout;
+    private System.Windows.Forms.FlowLayoutPanel flowToolbar;
+    private System.Windows.Forms.Button btnPrimary;
+    private System.Windows.Forms.Button btnSecondary;
+    private System.Windows.Forms.Label lblPlaceholder;
+}
