@@ -1,48 +1,78 @@
+// 层级：④ 应用（Services）—— 实现
+// 职责：业务规则与用例编排。它只依赖 Data 的【接口】和 Models，不知道数据到底从哪来。
+// 约束：Services/ 不允许 using System.Windows.Forms。
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using WinFormsSkillDemo.Common.Extensions;
+using WinFormsSkillDemo.Data.Abstractions;
 using WinFormsSkillDemo.Models;
+using WinFormsSkillDemo.Services.Abstractions;
 
 namespace WinFormsSkillDemo.Services;
 
-public interface ICustomerService
+public sealed class CustomerService : ICustomerService
 {
-    Task<IReadOnlyList<Customer>> GetAllAsync(IProgress<int> progress, CancellationToken cancellationToken);
-}
+    private readonly ICustomerRepository _repository;
 
-/// <summary>
-/// 假的客户服务：用延迟模拟 IO，不依赖数据库，保证示例可以直接跑起来。
-/// 注意这里用 ConfigureAwait(false) —— 服务层不碰 UI，不需要回到 UI 线程。
-/// </summary>
-public sealed class FakeCustomerService : ICustomerService
-{
-    private readonly List<Customer> _seed = new List<Customer>
+    // 依赖注入：需要什么，让别人给我，别自己 new。
+    // 好处：单元测试时可以塞一个假的 repository，不需要数据库。
+    public CustomerService(ICustomerRepository repository)
     {
-        new Customer { Name = "张三", Email = "zhangsan@example.com" },
-        new Customer { Name = "李四", Email = "lisi@example.com" },
-        new Customer { Name = "王五", Email = "wangwu@example.com" },
-        new Customer { Name = "赵六", Email = "zhaoliu@example.com" },
-        new Customer { Name = "钱七", Email = "qianqi@example.com" },
-        new Customer { Name = "孙八", Email = "sunba@example.com" },
-        new Customer { Name = "周九", Email = "zhoujiu@example.com" },
-        new Customer { Name = "吴十", Email = "wushi@example.com" },
-    };
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+    }
 
-    public async Task<IReadOnlyList<Customer>> GetAllAsync(IProgress<int> progress, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Customer>> LoadAsync(IProgress<int> progress, CancellationToken cancellationToken)
     {
-        for (var step = 1; step <= 5; step++)
+        var customers = await _repository.GetAllAsync(progress, cancellationToken).ConfigureAwait(false);
+
+        return SortByName(customers);
+    }
+
+    public IReadOnlyList<Customer> Search(IReadOnlyList<Customer> source, string keyword)
+    {
+        if (source == null)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // 服务层用 ConfigureAwait(false)：不需要回到 UI 线程
-            await Task.Delay(80, cancellationToken).ConfigureAwait(false);
-
-            // Progress<T> 在构造时捕获了 UI 的 SynchronizationContext，
-            // 所以 Report 的回调会自动回到 UI 线程 —— 不需要手写 Invoke。
-            progress?.Report(step * 20);
+            throw new ArgumentNullException(nameof(source));
         }
 
-        return _seed.ToArray();
+        // 空关键字 = 返回全部
+        if (string.IsNullOrWhiteSpace(keyword))
+        {
+            return source;
+        }
+
+        var trimmed = keyword.Trim();
+        var result = new List<Customer>();
+
+        foreach (var customer in source)
+        {
+            if (customer.Name.ContainsIgnoreCase(trimmed) || customer.Email.ContainsIgnoreCase(trimmed))
+            {
+                result.Add(customer);
+            }
+        }
+
+        return result;
+    }
+
+    public Customer CreateNewCustomer(int existingCount)
+    {
+        var index = existingCount + 1;
+
+        return new Customer
+        {
+            Name = $"新客户 {index}",
+            Email = $"customer{index}@example.com",
+        };
+    }
+
+    private static IReadOnlyList<Customer> SortByName(IReadOnlyList<Customer> customers)
+    {
+        var list = new List<Customer>(customers);
+        list.Sort((left, right) => string.Compare(left.Name, right.Name, StringComparison.CurrentCulture));
+        return list;
     }
 }

@@ -1,20 +1,19 @@
-// ============================================================================
-// 示例：UserControl 的逻辑文件
-// 只做「界面 + 转发」，业务决策交给宿主（MainForm）。
-// 对外暴露语义（属性 / 事件），不暴露内部控件字段。
-// ============================================================================
+// 层级：① 表现（Views）—— UserControl
+// 职责：只负责"显示"和"收集输入"。零业务逻辑 —— 逻辑全在 Presenters/CustomerListPresenter。
+// 约束：Views/ 允许 using System.Windows.Forms（本文件就是界面）。
+//       对外只暴露语义（属性 + 事件），绝不把控件字段改成 public。
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
 using WinFormsSkillDemo.Models;
+using WinFormsSkillDemo.Presenters;
 
 namespace WinFormsSkillDemo.Views;
 
-public partial class CustomerListView : UserControl
+public partial class CustomerListView : UserControl, ICustomerListView
 {
-    private readonly List<Customer> _allCustomers = new List<Customer>();
     private readonly BindingList<Customer> _customers = new BindingList<Customer>();
     private readonly BindingSource _bsCustomers = new BindingSource();
 
@@ -33,55 +32,29 @@ public partial class CustomerListView : UserControl
         dgvCustomers.DataSource = _bsCustomers;
     }
 
-    /// <summary>用户双击了某一行。宿主决定要做什么，控件自己不弹窗。</summary>
+    // ---- ICustomerListView 实现 ----
+
+    public event EventHandler SearchTextChanged;
+
     public event EventHandler<CustomerEventArgs> CustomerActivated;
 
-    /// <summary>筛选结果数量变化。宿主据此更新状态栏。</summary>
-    public event EventHandler FilteredCountChanged;
-
-    /// <summary>当前显示（已筛选）的客户数。</summary>
-    public int CustomerCount => _customers.Count;
-
-    /// <summary>搜索关键字。暴露语义，而不是暴露 txtSearch。</summary>
     public string SearchText
     {
         get => txtSearch.Text;
         set => txtSearch.Text = value ?? string.Empty;
     }
 
-    /// <summary>整体替换数据源。</summary>
     public void SetCustomers(IEnumerable<Customer> customers)
     {
-        _allCustomers.Clear();
-        _allCustomers.AddRange(customers);
-        ApplyFilter();
-    }
-
-    /// <summary>追加一条客户。</summary>
-    public void AddCustomer(Customer customer)
-    {
-        if (customer == null)
-        {
-            throw new ArgumentNullException(nameof(customer));
-        }
-
-        _allCustomers.Add(customer);
-        ApplyFilter();
-    }
-
-    private void ApplyFilter()
-    {
-        var keyword = txtSearch.Text.Trim();
-
         // 批量修改时先关掉通知，最后 ResetBindings 一次性刷新，避免逐项重绘
         _customers.RaiseListChangedEvents = false;
         try
         {
             _customers.Clear();
 
-            foreach (var customer in _allCustomers)
+            if (customers != null)
             {
-                if (keyword.Length == 0 || Matches(customer, keyword))
+                foreach (var customer in customers)
                 {
                     _customers.Add(customer);
                 }
@@ -92,20 +65,29 @@ public partial class CustomerListView : UserControl
             _customers.RaiseListChangedEvents = true;
             _customers.ResetBindings();
         }
-
-        FilteredCountChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    private static bool Matches(Customer customer, string keyword)
+    public void ShowCustomerDetail(Customer customer)
     {
-        return customer.Name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0
-            || customer.Email.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0;
+        if (customer == null)
+        {
+            return;
+        }
+
+        // "怎么显示"是界面的决定，所以 MessageBox 写在这里，而不是 Presenter 里
+        MessageBox.Show(
+            this,
+            $"双击了：{customer.Name}{Environment.NewLine}{customer.Email}",
+            "客户",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
     }
 
-    // 事件处理器：名字与 Designer.cs 里订阅的一致，签名必须匹配委托
+    // ---- 事件处理器：名字与 Designer.cs 里订阅的一致 ----
+
     private void txtSearch_TextChanged(object sender, EventArgs e)
     {
-        ApplyFilter();
+        SearchTextChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void dgvCustomers_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
@@ -124,15 +106,4 @@ public partial class CustomerListView : UserControl
 
         CustomerActivated?.Invoke(this, new CustomerEventArgs(customer));
     }
-}
-
-/// <summary>双击客户事件的数据。</summary>
-public sealed class CustomerEventArgs : EventArgs
-{
-    public CustomerEventArgs(Customer customer)
-    {
-        Customer = customer ?? throw new ArgumentNullException(nameof(customer));
-    }
-
-    public Customer Customer { get; }
 }

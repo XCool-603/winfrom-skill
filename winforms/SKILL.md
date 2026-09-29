@@ -3,11 +3,15 @@ name: winforms
 description: >-
   WinForms 桌面应用开发规范技能，强制把界面代码写进 *.Designer.cs 的 InitializeComponent()，
   保证 Visual Studio 设计器可往返编辑（round-trip），而不是把控件堆在构造函数里。
+  同时强制清晰的项目目录结构与分层架构（Forms / Views / Presenters / Models / Services / Data / Common），
+  依赖只能单向向下，Models 与 Services 里不允许出现 using System.Windows.Forms。
   覆盖：InitializeComponent 生成契约、往返安全红线、TableLayoutPanel/FlowLayoutPanel/Dock/Anchor 布局、
-  UserControl 拆分、事件与 async 逻辑、数据绑定、DPI 适配、跨线程 Invoke、Form 生命周期与资源释放。
+  UserControl 拆分、事件与 async 逻辑、数据绑定、DPI 适配、跨线程 Invoke、Form 生命周期与资源释放、
+  项目脚手架、单项目分层与多项目解决方案、依赖注入装配。
   Use this skill when building or modifying Windows Forms (WinForms) UI, generating or reviewing
   InitializeComponent() and *.Designer.cs files, laying out a form with TableLayoutPanel/Dock/Anchor,
-  splitting a form into UserControls, wiring event handlers, or checking whether generated UI code
+  splitting a form into UserControls, wiring event handlers, deciding which folder a file belongs in,
+  setting up a layered WinForms project structure or solution, or checking whether generated UI code
   survives the Visual Studio designer round-trip.
 ---
 
@@ -19,7 +23,7 @@ description: >-
 
 ---
 
-## 0. 五条铁律
+## 0. 六条铁律
 
 违反任意一条，产出即视为不合格。
 
@@ -30,11 +34,17 @@ description: >-
 | **R3** | **业务逻辑只写在 `*.cs`，Designer.cs 里零逻辑** | Designer.cs 是"生成物"，人可随时重写它。任何逻辑写进去都会被设计器覆盖丢失。 |
 | **R4** | **优先用布局容器，不写死 `Location`/`Size`** | 用 `TableLayoutPanel` / `FlowLayoutPanel` / `Dock` / `Anchor` / `Padding` / `Margin`。绝对定位是 WinForms 难维护的头号原因。 |
 | **R5** | **界面复杂就拆 `UserControl`** | 单个 Form 超过约 15~20 个控件，或存在可复用的区块，就拆成 UserControl，每个都带自己的 Designer.cs。 |
+| **R6** | **先建目录结构，再写代码；依赖只能单向向下** | 固定分层：`Forms/` `Views/` `Presenters/` `Models/` `Services/` `Data/` `Common/`。**`Forms/` 和 `Views/` 之外不允许出现 `using System.Windows.Forms;`**。绝不把 .cs 文件平铺在项目根目录。详见 [project-structure.md](./references/project-structure.md)。 |
 
-> **AI 最常见的三个翻车点**，每次交付前必须自查：
+> **AI 最常见的四个翻车点**，每次交付前必须自查：
 > 1. 声明了控件字段却忘了 `this.Controls.Add(...)` → 控件不显示。
 > 2. 在 `InitializeComponent()` 里写了 `foreach` 批量建控件 → 设计器直接打不开。
 > 3. 忘了在构造函数里调用 `InitializeComponent()` → 窗体一片空白。
+> 4. **把所有 .cs 平铺在项目根目录，不建任何文件夹** → 几十个文件糊成一团，看不出分层。
+
+> **R6 的执行顺序很重要**：新建项目时，**第一步就把目录建出来**，再往里填文件。
+> 不要"先写代码，最后整理目录"——那样一定会退化成平铺。
+> 一条命令生成标准骨架：`tools/new-winforms-scaffold.ps1`。
 
 ---
 
@@ -201,28 +211,50 @@ partial class MainForm
 
 ---
 
-## 4. 标准工作流（模式 B）
+## 4. 标准工作流
 
-1. **读现有代码**：项目目标框架、`csproj` 是否 `UseWindowsForms`、已有窗体的命名风格与 `AutoScaleDimensions` 取值、字体。**照抄现有风格**，别引入第二套。
-2. **规划控件清单**：列出每个控件的字段名、类型、父容器、行列位置。命名用有意义的前缀：`btn` `txt` `lbl` `cmb` `chk` `dgv` `pnl` `tab` `layout` `_` 开头私有字段。
-3. **设计布局**：默认 `TableLayoutPanel` 打底 + `Dock`/`Anchor`。超过 15 个控件就按 R5 拆 UserControl。
-4. **写 `*.Designer.cs`**：按 §2 模板，先字段声明，再 `InitializeComponent()`。
-5. **写 `*.cs`**：构造函数调用 `InitializeComponent()`；事件处理方法与 Designer 里订阅的名字**完全一致**；逻辑、异步、绑定、释放写这里。
-6. **核对 `csproj`**：SDK 风格项目按 `*.Designer.cs` 约定自动嵌套；文件名不匹配时需显式声明：
+> **R6 决定了第 1 步必须是建目录。** 先有结构，再填文件。
+
+1. **定目录结构（R6）**：
+   - **新建项目** → 跑 `tools/new-winforms-scaffold.ps1` 生成标准骨架，再往里填。
+   - **已有项目** → 先看现有结构，**沿用**它；只有在完全没有结构（.cs 平铺）时才按 [project-structure.md](./references/project-structure.md) §2 建目录。
+   - 一句话自检：**`Models/` 和 `Services/` 里有没有 `using System.Windows.Forms;`？** 有就是分层错了。
+2. **读现有代码**：项目目标框架、`csproj` 是否 `UseWindowsForms`、已有窗体的命名风格与 `AutoScaleDimensions` 取值、字体、命名空间是否跟随文件夹。**照抄现有风格**，别引入第二套。
+3. **决定每个新文件放哪**：查 [project-structure.md](./references/project-structure.md) §5 的「这个文件该放哪？」速查表。放不进去说明职责没想清。
+4. **规划控件清单**：列出每个控件的字段名、类型、父容器、行列位置。命名用有意义的前缀：`btn` `txt` `lbl` `cmb` `chk` `dgv` `pnl` `tab` `layout`。
+5. **设计布局**：默认 `TableLayoutPanel` 打底 + `Dock`/`Anchor`。超过 15 个控件就按 R5 拆 UserControl。
+6. **写 `*.Designer.cs`**：按 §2 模板，先字段声明，再 `InitializeComponent()`。
+7. **写 `*.cs`**：构造函数调用 `InitializeComponent()`；事件处理方法与 Designer 里订阅的名字**完全一致**；逻辑、异步、绑定、释放写这里。
+8. **核对 `csproj`**：SDK 风格项目按 `*.Designer.cs` 约定自动嵌套；文件名不匹配时需显式声明：
    ```xml
    <Compile Update="Forms\MainForm.Designer.cs">
      <DependentUpon>MainForm.cs</DependentUpon>
    </Compile>
    ```
-7. **跑 §5 自检清单**。
-8. **告知用户如何验证**：在 VS 里双击窗体 → "查看设计器"，确认能正常渲染且无黄色错误条；再随便拖动一下控件保存，确认设计器能重新序列化（这一步才真正验证了往返安全）。
+9. **跑两个检查脚本 + §5 自检清单**：
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File tools\check-structure.ps1 -Root .\MyApp
+   powershell -ExecutionPolicy Bypass -File tools\check-designer.ps1  -Root .\MyApp
+   ```
+10. **告知用户如何验证**：在 VS 里双击窗体 → "查看设计器"，确认能正常渲染且无黄色错误条；再随便拖动一下控件保存，确认设计器能重新序列化（这一步才真正验证了往返安全）。
 
+项目结构与分层 → [references/project-structure.md](./references/project-structure.md)
 布局与拆分细节 → [references/layout-and-decomposition.md](./references/layout-and-decomposition.md)
 逻辑、事件、异步、绑定 → [references/logic-and-events.md](./references/logic-and-events.md)
 
 ---
 
 ## 5. 交付前自检清单
+
+**目录与分层（R6）**
+- [ ] 项目根目录**没有**平铺的 .cs 文件（`Program.cs` 除外）。
+- [ ] 分层文件夹齐全：`Forms/` `Views/` `Presenters/` `Models/` `Services/` `Data/` `Common/`（用不到的可省，但不能没有结构）。
+- [ ] **`Forms/` 和 `Views/` 之外没有 `using System.Windows.Forms;`**（`Program.cs` 除外）。
+- [ ] 依赖只向下：没有 `Models/` 引用 `Services/`、`Services/` 引用 `Forms/` 之类的反向引用。
+- [ ] 命名空间跟随文件夹（`MyApp.Services` 对应 `Services/`）。
+- [ ] 没有 `Utils/`、`Misc/` 这类垃圾桶文件夹。
+- [ ] 每个 `Forms/XxxForm.cs` 都有配对的 `XxxForm.Designer.cs`。
+- [ ] 跨层依赖的是**接口**（`ICustomerService`），不是具体实现。
 
 **结构**
 - [ ] `InitializeComponent()` 在 `*.Designer.cs` 里，`private void`、无参。
@@ -263,12 +295,16 @@ partial class MainForm
 
 | 文件 | 内容 |
 |:---|:---|
-| [references/designer-cs-contract.md](./references/designer-cs-contract.md) | **核心**：往返契约、完整模板、禁止清单、Form/UserControl/含资源三类完整范例、`.resx` 处理 |
+| [references/project-structure.md](./references/project-structure.md) | **目录与分层**：标准目录树、每层职责、依赖方向图、文件该放哪速查表、命名、多项目方案、新手三个台阶、反模式 |
+| [references/designer-cs-contract.md](./references/designer-cs-contract.md) | **核心**：往返契约、完整模板、禁止清单、Form/UserControl/含资源三类完整范例、`.resx` 处理、Nullable 实测表 |
 | [references/layout-and-decomposition.md](./references/layout-and-decomposition.md) | TableLayoutPanel/FlowLayoutPanel 配方、Dock 顺序陷阱、UserControl 拆分准则、DPI 适配 |
 | [references/logic-and-events.md](./references/logic-and-events.md) | 逻辑文件结构、事件签名、async/await、跨线程、数据绑定、校验、资源释放、MVP 轻量分层 |
 | [references/review-checklist.md](./references/review-checklist.md) | 逐项自检清单 + 常见 AI 翻车案例与修法 |
+| [tools/new-winforms-scaffold.ps1](./tools/new-winforms-scaffold.ps1) | **一键生成标准目录骨架**（含可编译的 MainForm 与分层 README） |
+| [tools/check-structure.ps1](./tools/check-structure.ps1) | 校验目录完整性、依赖方向（禁止 Models/Services 引用 WinForms）、Designer 配对、命名空间一致性 |
+| [tools/check-designer.ps1](./tools/check-designer.ps1) | 校验 Designer.cs 三件套与往返契约 |
 | [assets/](./assets) | 可直接改名的骨架模板：`Form` / `UserControl` 的 Designer + 逻辑文件 |
-| [samples/WinFormsSkillDemo/](./samples/WinFormsSkillDemo) | 可运行示例工程：TableLayoutPanel 布局 + UserControl 拆分 + 绑定 + async |
+| [samples/WinFormsSkillDemo/](./samples/WinFormsSkillDemo) | 可运行示例工程：**完整分层**（Forms/Views/Presenters/Models/Services/Data/Common）+ 布局 + 绑定 + async |
 
 ---
 
@@ -276,4 +312,6 @@ partial class MainForm
 
 > **Designer.cs 是给人看的、给人拖的、给人接管的。AI 碰它就必须守规矩；不守规矩，就别碰它——只写逻辑。**
 
-人拖界面 + AI 写逻辑，是长期维护成本最低的分工；要 AI 生成界面，就用 UserControl 和布局容器把它拆小、拆到人愿意接手为止。
+> **文件夹就是架构图。** 先建目录再写代码，依赖只朝一个方向走，`Models/` 和 `Services/` 里永远看不到 `using System.Windows.Forms;`。
+
+人拖界面 + AI 写逻辑，是长期维护成本最低的分工；要 AI 生成界面，就用 UserControl 和布局容器把它拆小、拆到人愿意接手为止；要长期维护，就用目录结构把分层钉死。

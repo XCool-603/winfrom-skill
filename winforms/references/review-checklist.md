@@ -1,4 +1,4 @@
-# 交付前自检清单与常见翻车案例
+﻿# 交付前自检清单与常见翻车案例
 
 [SKILL.md](../SKILL.md) §5 的完整版。**每次交付 WinForms 代码前，逐项过一遍。** 这份清单是为了在用户打开 VS 之前就发现问题——WinForms 的很多错误不报编译错，只在设计器或运行时才暴露。
 
@@ -15,7 +15,19 @@
 
 ## 1. 自动化扫描（先跑这个）
 
-在项目根目录跑，能捞出绝大部分机械性错误。
+**两个脚本，先跑它们，能捞出绝大部分机械性错误。**
+
+```powershell
+# ① 目录结构与依赖方向（R6）
+powershell -ExecutionPolicy Bypass -File tools\check-structure.ps1 -Root .\MyApp
+
+# ② Designer.cs 三件套与往返契约（R1/R2）
+powershell -ExecutionPolicy Bypass -File tools\check-designer.ps1 -Root .\MyApp
+```
+
+`check-structure.ps1` 覆盖：目录完整性、根目录平铺、垃圾桶文件夹、业务层是否偷用 WinForms、Models 纯净度、Designer 配对、命名空间跟随文件夹。
+
+下面是**手工补充**的扫描（脚本没覆盖的情况）：
 
 ```bash
 # ① Designer.cs 里出现循环/条件/lambda/插值 → 往返必坏
@@ -43,6 +55,22 @@ rg -n --glob "*.Designer.cs" "this\.\w+\("
 ---
 
 ## 2. 结构检查
+
+### 2.1 目录与分层（R6）
+
+- [ ] 项目根目录**没有**平铺的 `.cs`（`Program.cs` 除外）。
+- [ ] 分层文件夹齐全：`Forms/` `Views/` `Presenters/` `Models/` `Services/` `Data/` `Common/`。
+- [ ] **`Forms/` 和 `Views/` 之外没有 `using System.Windows.Forms;`**。
+- [ ] `Models/` 里只 `using System...`，不引用任何其他层。
+- [ ] 依赖只向下，没有反向引用（`Models/` 不引用 `Services/`，`Services/` 不引用 `Forms/`）。
+- [ ] 命名空间跟随文件夹。
+- [ ] 没有 `Utils/` `Misc/` 这类垃圾桶文件夹。
+- [ ] 每个 `Forms/XxxForm.cs` / `Views/XxxView.cs` 都有配对的 `.Designer.cs`。
+- [ ] 跨层依赖的是**接口**，不是具体实现。
+- [ ] 全项目只有 `Program.cs` 里 `new` 具体实现（组装根）。
+- [ ] 带依赖的窗体提供了**无参构造**供设计器使用（见 [project-structure.md](./project-structure.md) §4）。
+
+### 2.2 代码结构
 
 - [ ] `InitializeComponent()` 位于 `*.Designer.cs`，**不在** `*.cs`。
 - [ ] 签名是 `private void InitializeComponent()`——`private`、`void`、无参。
